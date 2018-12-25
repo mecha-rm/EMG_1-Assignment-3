@@ -4,13 +4,15 @@
 #include <cmath>
 #include <random>
 
+// #include "spine/extension.h" // allows the use of 'PI'
+// #define M_PI 3.14159265358979323846   // pi
+
 Vec2 Entity::wrapPointsMin = Vec2(0.0F, 0.0F);
 Vec2 Entity::wrapPointsMax = Vec2(0.0F, 0.0F);
 
 Entity::Entity() : Entity(Vec2(0, 0), "images/DUMMY.png") {}
 
 // Entity::Entity(Entity* entity) { *this = entity; }
-
 
 Entity::Entity(Vec2 position, std::string spritePath, float scale, float MAXVELOCITY, float DECELERATE, float maxHealth) : MAXVELOCITY(MAXVELOCITY), DECELERATE(DECELERATE)
 {
@@ -144,7 +146,7 @@ Vec2 Entity::rotateEntity(float theta, Vec2 direcVec)
 	// Rotates Entity
 	cocos2d::Mat4 rotation = Mat4::IDENTITY;
 	rotation.translate(cocos2d::Vec3(sprite->getCenterRect().size.width * sprite->getAnchorPoint().x, sprite->getCenterRect().size.height * sprite->getAnchorPoint().y, 0.0F)); // makes it rotate on its centre
-	rotation.rotateZ(-theta); // rotates the entity
+	rotation.rotateZ(-theta); // rotates the entity; cocos uses degrees
 	rotation.translate(-cocos2d::Vec3(sprite->getCenterRect().size.width * sprite->getAnchorPoint().x, sprite->getCenterRect().size.height * sprite->getAnchorPoint().y, 0.0F)); // moves it back
 
 	// sprite->setPosition(0.0F, 0.0F); // moves the sprite back to the centre for rotation

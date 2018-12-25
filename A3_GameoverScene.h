@@ -30,6 +30,13 @@ public:
 	void onExit();
 
 	CREATE_FUNC(A3_GameoverScene);
+
+private:
+	
+	// Event listeners
+	EventListenerMouse* mouseListener;
+	EventListenerKeyboard* keyboardListener;
+
 } GameoverScene, GameOverScene;
 
 

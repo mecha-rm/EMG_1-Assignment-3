@@ -1,6 +1,5 @@
 #include "A3_GameoverScene.h"
 
-
 A3_GameoverScene::A3_GameoverScene() {}
 
 Scene * A3_GameoverScene::createScene()
@@ -24,12 +23,20 @@ void A3_GameoverScene::onEnter()
 
 void A3_GameoverScene::initListeners() // initalizes event handlers
 {
+	initKeyboardListener();
 
 }
 
 void A3_GameoverScene::initKeyboardListener()
 {
+	//Create the keyboard listener
+	keyboardListener = EventListenerKeyboard::create();
 
+	//Setting up callbacks
+	keyboardListener->onKeyPressed = CC_CALLBACK_2(A3_GameoverScene::keyDownCallback, this);
+	keyboardListener->onKeyReleased = CC_CALLBACK_2(A3_GameoverScene::keyUpCallback, this);
+
+	//Add the keyboard listener to the dispatcher
 }
 
 void A3_GameoverScene::initContactListener()

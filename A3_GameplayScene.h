@@ -15,7 +15,7 @@ using namespace cocos2d;
 typedef class A3_GameplayScene : public Scene
 {
 public:
-	A3_GameplayScene();
+	A3_GameplayScene() = default;
 
 	// The floats are extras that I added so that the scene could have the screen's size
 	static Scene* createScene();
@@ -63,12 +63,30 @@ protected:
 	void updateProjectiles(float deltaTime);
 	void collisions(); // handles all collisions
 
+	void updateHud(); // updates the game hud with new information
+
 
 private:
 	// Engine
 	Director * director;
-	Label * scoreLabel;
-	DrawNode * hpNode;
+
+	DrawNode * hud; // a second layer used to put the hud on screen.
+	Label * scoreLabel; // saves the score
+	Label * lifeLabel; // saves the amount of lives
+
+	DrawNode * hpNode; // saves the hp
+	// Saves the location of the assets used to create the health bar. There are 6 assets used.
+	/*
+		[0]: HP Bar BG - a black background put behind the HP bar. It is the same size as a full hp bar.
+		[1]: HP Bar - the actual hp bar. This changes size based on how much health the palyer has.
+		[2]: Sepration Line (0.25) - separation line on the health bar. It marks 1/4 of the HP bar.
+		[3]: Sepration Line (0.50) - separation line on the health bar. It makrs 2/4 of the HP bar.
+		[4]: Sepration Line (0.75) - separation line on the health bar. It makrs 3/4 of the HP bar.
+		[5]: Outline - outlines the HP Bar.
+	*/
+	DrawNode * hpBar[6];
+
+	Size BARSIZE = Size(200.0F, 40.0F); // the size of the health bar
 
 	// the screen's width and height
 	static float screenWidth;
@@ -98,8 +116,6 @@ private:
 
 	// Records the totaled delta timer across 'x' amount of frames.
 	float timer = 0;
-	// The player's score
-
 
 	//Event listeners
 	// EventListenerMouse* mouseListener;

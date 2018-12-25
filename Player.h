@@ -14,7 +14,7 @@ class Player : public Entity
 {
 public:
 	// Player's position, the file path to their image, and they're base force
-	Player(Vec2 position, std::string imagePath = "images/player_ship.png", const float APPLIEDFORCE = 200.0F);
+	Player(Vec2 position, std::string imagePath = "images/player_ship.png", const int MAXHEALTH = 4, const float APPLIEDFORCE = 200.0F);
 	// Player(Player*);
 
 	playerState getState();
@@ -22,25 +22,28 @@ public:
 	// gets the base force of the player. This is the amount of force applied every button press.
 	float getAppliedForce();
 
-	// gets the player's health
-	int getHealth();
-	// gets the player's maximum health
-	int getMaxHealth();
 	// gets the player's score
-	unsigned int getScore();
+	int getScore();
+	// sets the player's score
+	void setScore(int score);
+	// increases the player's score
+	void increaseScore(int increase);
+
+	// gets the amount of lives the player has
+	int getLives();
+	// sets the amount of lives the player has
+	void setLives(int lives);
 
 	void update(float deltaTime);
 
+	int score = 0;
+	int lives = 3;
+
 protected:
-	void setHealth(int health);
-	void setScore(unsigned int score);
 
 private:
 	playerState state;
+	
 	const float APPLIEDFORCE; // force for the player when they move. It's only one float because they move the same speed regardless of the axis.
-
-	int health = 3;
-	const float MAXHEALTH = 3;
-	unsigned int score = 0;
 };
 

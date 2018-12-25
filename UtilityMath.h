@@ -20,6 +20,11 @@ public:
 	// gets the four corners, the centre, and the rotation factor. The rotation factor is assuming the object is at an angle of 0.
 	static void rotate(cocos2d::Vec2 * corners, cocos2d::Vec2 &centre, float theta); 
 
+	// conversion from degrees to radians. 1 degree = pi/180 radians. 
+	static float degreesToRadians(float degrees);
+	// conversion from radians to degrees. 1 radian = 180/pi degrees.
+	static float radiansToDegrees(float radians);
+
 	// Returns a random number starting form 'lbound' upto ubound.
 	// If 'includeUbound' is set to 'true', it's upto and including ubound; if false, it's upto but not including ubound. False by default.
 	static int randInt(int lBound, int uBound, bool includeUBound = false);

@@ -46,7 +46,8 @@ protected:
 
 private:
 	unsigned short int type = 0; // the type of the enemy
-	float shield = 0; // the enemy's shield
+
+	int shield = 0; // the enemy's shield
 	float radius2 = 0; // a second radius for the enemy. This is used for black holes.
 
 	// the spawn rates of all the enemies

@@ -1,4 +1,6 @@
 // Math functions
+#include "spine/extension.h" // allows the use of pi
+// #define PI 3.1415926535897932385f
 
 #include "UtilityMath.h"
 #include "Matrix.h" // also includes personal Vector.h
@@ -27,10 +29,9 @@ cocos2d::Vec2 UtilityMath::rotate(cocos2d::Vec2 points, cocos2d::Vec2 centre, fl
 
 	// degrees to radians - 1 degree = pi/180 radians. 
 	// radians to degrees - 1 radian = 180/pi degrees.
-	M_PI; // Pi
 
-	float cosTheta(cos(theta)); // gets the cos of the angle
-	float sinTheta(sin(theta)); // gets the sin of the angle
+	float cosTheta(cosf(theta)); // gets the cos of the angle
+	float sinTheta(sinf(theta)); // gets the sin of the angle
 	
 	// Matrix4 rMatrix(cosTheta, -sinTheta, sinTheta, cosTheta);
 	// Because the class uses a 4 x 4 matrix, the rest of the values are set to 0. We offset it by the world's centre to bring it to 0, 0, which we will add back later.
@@ -40,28 +41,28 @@ cocos2d::Vec2 UtilityMath::rotate(cocos2d::Vec2 points, cocos2d::Vec2 centre, fl
 	// cos(a), -sin(a) 
 	// sin(a), cos(a)
 	Matrix4 rMatrix(cosTheta, -sinTheta, 0, 0,
-		sinTheta, cosTheta, 0, 0,
-		0, 0, 0, 0,
-		0, 0, 0, 0);
+					sinTheta, cosTheta, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1);
 
 	// The points to be rotated
 	Matrix4 pMatrix(points.x - centre.x, 0, 0, 0,
 				   points.y - centre.y, 0, 0, 0,
-				   0, 0, 0, 0,
-				   0, 0, 0, 0);
+				   0, 0, 1, 0,
+				   0, 0, 0, 1);
 
 	pMatrix = rMatrix * pMatrix;
 
 	return cocos2d::Vec2(pMatrix[0][0] + centre.x, pMatrix[1][0] + centre.y); // now works(?)
 }
 
-// gets the four corners, the centre, and the rotation factor.
+// gets the four corners, the centre, and the rotation factor. This is old, and should not be used.
 void UtilityMath::rotate(cocos2d::Vec2 * corners, cocos2d::Vec2 &centre, float theta)
 {
 	// degrees to radians - 1 degree = pi/180 radians. 
 	// radians to degrees - 1 radian = 180/pi degrees.
-	float cosTheta(cos(theta * (M_PI / 180))); // gets the cos of the angle
-	float sinTheta(sin(theta * (M_PI / 180))); // gets the sin of the angle
+	float cosTheta(cos(theta * (PI / 180))); // gets the cos of the angle
+	float sinTheta(sin(theta * (PI / 180))); // gets the sin of the angle
 
 	
 	// The setup in Matrix4 is the following:
@@ -136,6 +137,12 @@ void UtilityMath::rotate(cocos2d::Vec2 * corners, cocos2d::Vec2 &centre, float t
 	corners[3].x = c1Matrix[0].x + centre.x;
 	corners[3].y = c1Matrix[1].x + centre.y;
 }
+
+// conversion from degrees to radians. 1 degree = pi/180 radians. 
+float UtilityMath::degreesToRadians(float degrees) { return degrees * (PI / 180); }
+
+// conversion from radians to degrees. 1 radian = 180/pi degrees.
+float UtilityMath::radiansToDegrees(float radians) { return radians * (180 / PI); }
 
 // random range from lbound to ubound, upto but not including ubound if 'includeUBound' is false.
 int UtilityMath::randInt(int lBound, int uBound, bool includeUBound)

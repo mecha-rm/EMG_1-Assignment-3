@@ -230,6 +230,16 @@ void Enemy::addToSpawnRates(int smlAsteroids, int lgeAsteroids, int blackHoles, 
 // Update function for enemies.
 void Enemy::update(float deltaTime)
 {
+	// 1. Small Asteroid , 2. Large Asteroid, 3. Black Hole, 4. Planets, 5. Enemy Ship - Shooter, 6. Enemy Ship - Kamikaze, 7. Boss
+	// Black Holes
+	if (type == 3)
+	{
+		if (getTime() > 1000.0F) // if a whole second has passed, then the blackhole is removed.
+		{
+			
+		}
+	}
+
 	addForce(force.x, force.y); // adds force to the standard force of the entity
 	Entity::update(deltaTime);
 }

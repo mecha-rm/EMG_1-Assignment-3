@@ -8,10 +8,7 @@ float A3_GameplayScene::screenWidth = 0.0f; // screen width
 float A3_GameplayScene::screenHeight = 0.0f; // screen height
 
 // constructor; if no screenWidth or height is provided, screen wrapping is disabled
-A3_GameplayScene::A3_GameplayScene() 
-{
-	
-}
+// A3_GameplayScene::A3_GameplayScene() {}
 
 Scene * A3_GameplayScene::createScene()
 {
@@ -33,11 +30,8 @@ Scene * A3_GameplayScene::createScene(float width, float height)
 	return createScene();
 }
 
-// What we do on enter.
-void A3_GameplayScene::onEnter()
-{
-	Scene::onEnter(); // activates base functionality.
-}
+// What we do on enter. This activates base functionality.
+void A3_GameplayScene::onEnter() { Scene::onEnter(); }
 
 // Initalizer function
 bool A3_GameplayScene::init()
@@ -205,7 +199,7 @@ void A3_GameplayScene::initSprites()
 	Entity::setWrapPointsMax(Vec2(screenWidth, screenHeight));
 
 	// Creates the player ship; all values beyond the constructor are set in the player class
-	pShip = new Player(Vec2(director->getWinSizeInPixels().width / 2.0f, director->getWinSizeInPixels().height / 2.0f), "images/player_ship.png");
+	pShip = new Player(Vec2(director->getWinSizeInPixels().width / 2.0f, director->getWinSizeInPixels().height / 2.0f), "images/player_ship.png", 4);
 	// smallAsteroid = new Enemy(1);
 	// largeAsteroid = new Enemy(2);
 
@@ -221,26 +215,58 @@ void A3_GameplayScene::initSprites()
 		this->addChild(enemy->getSprite());
 	}
 	
+	// HUD
+	hud = new DrawNode();
+	hud->setName("hud"); // used to identify the node
+	hud->setLocalZOrder(2); // putting it on the second layer, which places everything part of it above everything else.
+	
 	// Labels
-	scoreLabel = Label::create("SCORE: ", "arial", 30.0F, Size(screenWidth, screenHeight), TextHAlignment::CENTER, TextVAlignment::TOP);
+	scoreLabel = Label::create("0", "Calibri", 25.0F, Size(screenWidth, screenHeight), TextHAlignment::CENTER, TextVAlignment::TOP);
+	scoreLabel->setName("score");
+	
 	scoreLabel->setAnchorPoint(cocos2d::Vec2(0.0, 0.0));
 	// scoreLabel->setString("Ultron"); // used to change text
 	scoreLabel->enableShadow();
-	this->addChild(scoreLabel);
+	hud->addChild(scoreLabel);
+
+	lifeLabel = Label::create("LIVES: " + std::to_string(pShip->getLives()) + " ", "Calibri", 25.0F, Size(screenWidth, screenHeight), TextHAlignment::RIGHT, TextVAlignment::TOP);
+	lifeLabel->setName("lives");
+	lifeLabel->setAnchorPoint(cocos2d::Vec2(0.0, 0.0));
+	lifeLabel->enableShadow();
+	hud->addChild(lifeLabel);
 	
 	// Tutorial: https://www.youtube.com/watch?v=iBfggFTvldw
+
+	hpBar[0] = DrawNode::create();
+	hpBar[0]->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F::BLACK); // background health
+
 	hpNode = DrawNode::create(); // creates the shape
+	hpNode->setName("health");
 	// To set a pre-existing color, use Color4F::COLOUR_NAME. e.g. Color4F::ORANGE
 	// RGBA = (Red, Green, Blue, Alpha) https://en.wikipedia.org/wiki/RGBA_color_space
 	// 'Alpha' measures how opague each pixel is. The higher the 'alpha' value, the more opague the colour is.
-	
 
-	hpNode->drawSolidRect(Vec2(0.0F, 0.0F), Vec2(100.0F, 100.0F), Color4F(50.0F, 200.0F, 150.0F, 1.00F)); // can be done by four corner points, or starting point and ending point.
-	hpNode->drawSolidRect(Vec2(49.0F, 324.0F), Vec2(200.0F, 400.0F), Color4F(50.0F, 200.0F, 150.0F, 1.00F));
-	this->addChild(hpNode);
+	// https://cocos2d-x.org/reference/native-cpp/V3.0alpha0/d2/d77/structcocos2d_1_1_color4_f.html#a9b6e45d9600d22cba771844689366dd8
+
+	// can be done by four corner points, or starting point and ending point.
+	// hpNode->drawSolidRect(Vec2(49.0F, 324.0F), Vec2(200.0F, 400.0F), Color4F(50.0F, 200.0F, 150.0F, 1.00F));  // test rectangle
+	// hpNode->drawRect(Vec2(1.0F, screenHeight - 41), Vec2(200, screenHeight - 1.0), Color4F(1.00F, 1.00F, 1.00F, 1.00F));
+
+	hpNode->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F::BLACK); // background health
+	hpNode->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width * pShip->getHealth() / pShip->getMaxHealth(), screenHeight - 5.0F), Color4F::GREEN); // the actual health bar
+
+	// Makes three lines seperating the sections on the health bar
+	for (int i = 1; i <= 3; i++)
+	{
+		hpNode->drawLine(Vec2(5.0F + BARSIZE.width / 4 * i, screenHeight - 5.0F), Vec2(5.0F + BARSIZE.width / 4 * i, screenHeight - BARSIZE.height - 5.0F), Color4F::GRAY);
+	}
+
+	hpNode->drawRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F(Color3B(240.0F, 240.0F, 240.0F), 1.0F)); // the outline. Color3B is used for compatibility with traditional RGB
 	
+	hud->addChild(hpNode); // adds the hp nodes
+	// hud->setParent()
+	this->addChild(hud);
 	// this->addChild(hpNode);
-
 
 }
 
@@ -261,11 +287,18 @@ void A3_GameplayScene::spawnEnemy(unsigned short int type)
 // Main update loop
 void A3_GameplayScene::update(float deltaTime)
 {
+	static float spawnTimer; // the timer used for spawning enemies
 	timer += deltaTime; // gets delta time across 'x' period of time
-	if(timer > 1.0F)// when 1 second has passed, an enemy is spawned.
+	spawnTimer += deltaTime;
+
+	// updates screen size incase something has changed
+	screenWidth = director->getWinSizeInPixels().width;
+	screenHeight = director->getWinSizeInPixels().height;
+
+	if(spawnTimer > 2.0F)// when 2 second(s) has passed, an enemy is spawned.
 	{
 		spawnEnemy(); // spawns the enemy
-		timer = 0; // puts the timer back at 0.
+		spawnTimer = 0; // puts the timer back at 0.
 		// spawn = deltaTime; // gets current timer
 	}
 
@@ -274,14 +307,7 @@ void A3_GameplayScene::update(float deltaTime)
 	updateProjectiles(deltaTime);
 
 	collisions(); // goes through collisions
-
-	//Color4f (r, g, b, a)
-	// Color3f()
-	// https://cocos2d-x.org/reference/native-cpp/V3.0alpha0/d2/d77/structcocos2d_1_1_color4_f.html#a9b6e45d9600d22cba771844689366dd8
-	
-	// cocos2d::Label lbl = Label()
-	ccDrawSolidRect(Vec2(10.0F, 10.0F), Vec2(40.0F, 40.0F), Color4F(0, 0, 255.0F, 100));
-
+	updateHud(); // updates the HUD information
 }
 
 void A3_GameplayScene::updatePlayer(float deltaTime)
@@ -347,6 +373,15 @@ void A3_GameplayScene::updateEnemies(float deltaTime)
 	for (int i = 0; i < enemies.size(); i++)
 	{
 		enemies.at(i)->update(deltaTime); // calls individual updates
+
+		// If the enemy has 0 health or less, it is deleted.
+		if (enemies.at(i)->getHealth() <= 0)
+		{
+			enemies.at(i)->getSprite()->runAction(RemoveSelf::create()); // removes the sprite from the draw list
+			enemies.erase(enemies.begin() + i); // erases the enemy from the enemy vector
+			i--;
+		}
+
 		// umath::collision(pShip, enemies.at(i)); // collision check
 	}
 }
@@ -369,8 +404,18 @@ void A3_GameplayScene::updateProjectiles(float deltaTime)
 // collisions
 void A3_GameplayScene::collisions()
 {
-
 	Enemy * enemy; // temporary enemy object
+	// Player colission with enemies
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		// If there is collision, hte player loses health.
+		if (umath::collision(pShip, enemies[i]))
+		{
+			pShip->setHealth(pShip->getHealth() - enemies.at(i)->getDamage());
+			break; // the player can only take damage from one enemy per frame.
+		}
+	}
+
 
 	// Projectile Collision with Enemies
 	for (int i = 0; i < projectiles.size(); i++)
@@ -397,9 +442,14 @@ void A3_GameplayScene::collisions()
 						this->addChild(enemies.at(enemies.size() - 1)->getSprite()); // adds the sprite to the draw list
 					}
 				}
+				else
+				{
+					pShip->increaseScore(10); // adds '10' to the player score
+				}
 
-				enemies.at(j)->getSprite()->runAction(RemoveSelf::create()); // removes the sprite from the draw list
-				enemies.erase(enemies.begin() + j); // erases the enemy from the enemy vector
+				enemies.at(j)->setHealth(enemies.at(j)->getHealth() - 1); // decreases enemy health by '1'. In the enemy update, an enemy is deleted if it has a health of '0' or less.
+				// enemies.at(j)->getSprite()->runAction(RemoveSelf::create()); // removes the sprite from the draw list
+				// enemies.erase(enemies.begin() + j); // erases the enemy from the enemy vector
 				break;
 			}
 		}
@@ -407,6 +457,29 @@ void A3_GameplayScene::collisions()
 		if (i >= projectiles.size())
 			break;
 	}
+}
+
+// updates the HUD; causes stuttering
+void A3_GameplayScene::updateHud()
+{
+	// this->removeChild(hud); // removes the hud from the draw list momentarily
+	scoreLabel->setString(std::to_string(pShip->getScore())); // updates score
+	lifeLabel->setString("LIVES: " + std::to_string(pShip->lives) + " "); // updates life count
+
+	// Re-calculating the health bar
+	hpNode->clear();
+	
+	hpNode->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F::BLACK); // background health
+	hpNode->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width * pShip->getHealth() / pShip->getMaxHealth(), screenHeight - 5.0F), Color4F::GREEN); // the actual health bar
+
+	// Makes three lines seperating the sections on the health bar
+	for (int i = 1; i <= 3; i++)
+		hpNode->drawLine(Vec2(5.0F + BARSIZE.width / 4 * i, screenHeight - 5.0F), Vec2(5.0F + BARSIZE.width / 4 * i, screenHeight - BARSIZE.height - 5.0F), Color4F::GRAY);
+	
+
+	hpNode->drawRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F(Color3B(240.0F, 240.0F, 240.0F), 1.0F)); // the outline. Color3B is used for compatibility with traditional RGB
+
+	// this->addChild(hud); // adds the hud at the end of the draw list
 }
 
 /*

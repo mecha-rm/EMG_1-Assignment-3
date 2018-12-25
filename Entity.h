@@ -106,6 +106,9 @@ public:
 
 	// Gets the current health of the entity
 	float getHealth();
+	// sets the current health of the entity
+	void setHealth(float currentHealth);
+
 	// Gets the current health of the entity; same as getHealth();
 	float getCurrentHealth();
 	// gets the maximum health an enemy can have
@@ -137,8 +140,6 @@ protected:
 	// turns on/off constant velocity. When on, the enity moves by the same amount every frame.
 	void setConstVelocity(bool constVelocity);
 	
-	// sets the current health of the entity
-	void setHealth(float currentHealth);
 	// sets the maximum health
 	void setMaxHealth(float maxHealth);
 
