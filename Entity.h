@@ -98,11 +98,22 @@ public:
 	// mass
 	float getMass();
 	void setMass(float mass);
+
 	// force
 	Vec2 getForce();
-	void setForce(float x, float yf);
+	void setForce(float x, float y);
 	void setForce(Vec2 force);
 	void addForce(float x, float y);
+
+	// velocity
+	// gets the current velocity of the entity
+	Vec2 getVelocity();
+	// sets the current velocity of the entity
+	void setVelocity(Vec2 velocity);
+	// sets the current velocity of the entity
+	void setVelocity(float x, float y);
+	// adds to the entity's current velocity
+	void addVelocity(float x, float y);
 
 	// Gets the current health of the entity
 	float getHealth();

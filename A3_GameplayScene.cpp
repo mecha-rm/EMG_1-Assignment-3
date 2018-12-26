@@ -139,8 +139,19 @@ void A3_GameplayScene::keyDownCallback(EventKeyboard::KeyCode keyCode, Event* ev
 	// Toggles on and off rotations
 	if (keyCode == EventKeyboard::KeyCode::KEY_CAPS_LOCK)
 	{
+		std::cout << "Rotation Toggled!" << std::endl;
 		pShip->rotateLR = !pShip->rotateLR;
 	}
+	// Toggles the hud on/off
+	if (keyCode == EventKeyboard::KeyCode::KEY_H)
+	{
+		std::cout << "Display Toggled!" << std::endl;
+		displayHud = !displayHud;
+		// If the hud is on, it is put on layer 2. If it's off, it's put on layer -1, which is behind everything.
+		(displayHud) ? hud->setLocalZOrder(2) : hud->setLocalZOrder(-1);
+	}
+	
+	std::cout << std::endl;
 }
 
 // Letting Go of a Key
@@ -174,8 +185,9 @@ void A3_GameplayScene::keyUpCallback(EventKeyboard::KeyCode keyCode, Event* even
 	{
 		std::cout << "Right Key or 'D' Released!" << std::endl;
 		rightKey = false;
-
 	}
+
+	std::cout << std::endl;
 }
 
 // Tells cocos if we want two things to collide, and what to do if there is collision. We should be using our own collision math.
@@ -184,6 +196,10 @@ void A3_GameplayScene::keyUpCallback(EventKeyboard::KeyCode keyCode, Event* even
 // Initializes sprites
 void A3_GameplayScene::initSprites()
 {
+	Enemy* enemy; // generic enemy object
+	const int BARLEN = sizeof(hpBar)/sizeof(*hpBar); // the amount of elements in HPBAR
+	Size BARSIZE = Size(200.0F, 40.0F); // the size of the health bar
+
 	// image starts in the 'resource' folder
 	//Init the background sprites
 	spr_BG = Sprite::create("images/space_bg1.jpg"); //Load the handle
@@ -204,8 +220,6 @@ void A3_GameplayScene::initSprites()
 	// largeAsteroid = new Enemy(2);
 
 	this->addChild(pShip->getSprite());
-	
-	Enemy* enemy; // generic enemy object
 
 	// Starts off with random asteroids of varying sizes
 	for (int i = 0; i < 3; i++)
@@ -221,7 +235,8 @@ void A3_GameplayScene::initSprites()
 	hud->setLocalZOrder(2); // putting it on the second layer, which places everything part of it above everything else.
 	
 	// Labels
-	scoreLabel = Label::create("0", "Calibri", 25.0F, Size(screenWidth, screenHeight), TextHAlignment::CENTER, TextVAlignment::TOP);
+	// *scoreStr = "0"; // starting score string value.
+	scoreLabel = Label::create("0", "fonts/arial.ttf", 25.0F, Size(screenWidth, screenHeight), TextHAlignment::CENTER, TextVAlignment::TOP);
 	scoreLabel->setName("score");
 	
 	scoreLabel->setAnchorPoint(cocos2d::Vec2(0.0, 0.0));
@@ -229,19 +244,17 @@ void A3_GameplayScene::initSprites()
 	scoreLabel->enableShadow();
 	hud->addChild(scoreLabel);
 
-	lifeLabel = Label::create("LIVES: " + std::to_string(pShip->getLives()) + " ", "Calibri", 25.0F, Size(screenWidth, screenHeight), TextHAlignment::RIGHT, TextVAlignment::TOP);
+	// *lifeStr = "LIVES: " + std::to_string(pShip->getLives()) + " ";
+	lifeLabel = Label::create("LIVES: " + std::to_string(pShip->getLives()) + " ", "fonts/arial.ttf", 25.0F, Size(screenWidth, screenHeight), TextHAlignment::RIGHT, TextVAlignment::TOP);
 	lifeLabel->setName("lives");
 	lifeLabel->setAnchorPoint(cocos2d::Vec2(0.0, 0.0));
 	lifeLabel->enableShadow();
 	hud->addChild(lifeLabel);
 	
+	/*
 	// Tutorial: https://www.youtube.com/watch?v=iBfggFTvldw
 
-	hpBar[0] = DrawNode::create();
-	hpBar[0]->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F::BLACK); // background health
-
-	hpNode = DrawNode::create(); // creates the shape
-	hpNode->setName("health");
+	// hpNode->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F::BLACK); // background health
 	// To set a pre-existing color, use Color4F::COLOUR_NAME. e.g. Color4F::ORANGE
 	// RGBA = (Red, Green, Blue, Alpha) https://en.wikipedia.org/wiki/RGBA_color_space
 	// 'Alpha' measures how opague each pixel is. The higher the 'alpha' value, the more opague the colour is.
@@ -251,21 +264,31 @@ void A3_GameplayScene::initSprites()
 	// can be done by four corner points, or starting point and ending point.
 	// hpNode->drawSolidRect(Vec2(49.0F, 324.0F), Vec2(200.0F, 400.0F), Color4F(50.0F, 200.0F, 150.0F, 1.00F));  // test rectangle
 	// hpNode->drawRect(Vec2(1.0F, screenHeight - 41), Vec2(200, screenHeight - 1.0), Color4F(1.00F, 1.00F, 1.00F, 1.00F));
+	*/
 
-	hpNode->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F::BLACK); // background health
-	hpNode->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width * pShip->getHealth() / pShip->getMaxHealth(), screenHeight - 5.0F), Color4F::GREEN); // the actual health bar
-
-	// Makes three lines seperating the sections on the health bar
-	for (int i = 1; i <= 3; i++)
-	{
-		hpNode->drawLine(Vec2(5.0F + BARSIZE.width / 4 * i, screenHeight - 5.0F), Vec2(5.0F + BARSIZE.width / 4 * i, screenHeight - BARSIZE.height - 5.0F), Color4F::GRAY);
-	}
-
-	hpNode->drawRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F(Color3B(240.0F, 240.0F, 240.0F), 1.0F)); // the outline. Color3B is used for compatibility with traditional RGB
+	// Background Health
+	hpBar[0]->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F::BLACK);
 	
-	hud->addChild(hpNode); // adds the hp nodes
+	// The actual health bar
+	hpBar[1]->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width * pShip->getHealth() / pShip->getMaxHealth(), screenHeight - 5.0F), Color4F::GREEN);
+	hpBar[1]->setAnchorPoint(Vec2(0.0F, 0.0F)); // this is the only shape that gets altered, so the anchour point needs to be defined.
+
+	// Makes three lines seperating the sections on the health bar. Goes through indexes 2 - 4
+	for (int i = 2; i < 5; i++)
+		hpBar[i]->drawLine(Vec2(5.0F + BARSIZE.width / 4 * (i - 1), screenHeight - 5.0F), Vec2(5.0F + BARSIZE.width / 4 * (i - 1), screenHeight - BARSIZE.height - 5.0F), Color4F::GRAY);
+	
+
+	hpBar[5]->drawRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F(Color3B(240.0F, 240.0F, 240.0F), 1.0F)); // the outline. Color3B is used for compatibility with traditional RGB
+	
+	for (int i = 0; i < BARLEN; i++)
+	{
+		hud->addChild(hpBar[i]);
+	}
+	// hud->addChild(hpBar); // adds the hp nodes
 	// hud->setParent()
-	this->addChild(hud);
+	
+	if(displayHud) // if the hud is set to be displayed.
+		this->addChild(hud);
 	// this->addChild(hpNode);
 
 }
@@ -307,7 +330,8 @@ void A3_GameplayScene::update(float deltaTime)
 	updateProjectiles(deltaTime);
 
 	collisions(); // goes through collisions
-	updateHud(); // updates the HUD information
+	// updateHud(); // updates the HUD information; now only updates whenever necessary
+	// std::cout << "pShip Theta - D: " << umath::radiansToDegrees(pShip->theta) << " R: " << pShip->theta << std::endl;
 }
 
 void A3_GameplayScene::updatePlayer(float deltaTime)
@@ -405,6 +429,8 @@ void A3_GameplayScene::updateProjectiles(float deltaTime)
 void A3_GameplayScene::collisions()
 {
 	Enemy * enemy; // temporary enemy object
+	// bool statUpdate = false; // tells the program to update the hud
+				   
 	// Player colission with enemies
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -412,6 +438,8 @@ void A3_GameplayScene::collisions()
 		if (umath::collision(pShip, enemies[i]))
 		{
 			pShip->setHealth(pShip->getHealth() - enemies.at(i)->getDamage());
+			updateHud(1); // updates the health bar
+			// statUpdate = true; // the hud needs to be updated
 			break; // the player can only take damage from one enemy per frame.
 		}
 	}
@@ -445,6 +473,8 @@ void A3_GameplayScene::collisions()
 				else
 				{
 					pShip->increaseScore(10); // adds '10' to the player score
+					updateHud(2); // updates the score
+					// statUpdate = true; // updates the display.
 				}
 
 				enemies.at(j)->setHealth(enemies.at(j)->getHealth() - 1); // decreases enemy health by '1'. In the enemy update, an enemy is deleted if it has a health of '0' or less.
@@ -457,15 +487,33 @@ void A3_GameplayScene::collisions()
 		if (i >= projectiles.size())
 			break;
 	}
+
+	// if (statUpdate) // updates the hud if something has changed, as determined by statUpdate
+		// updateHud();
 }
 
-// updates the HUD; causes stuttering
-void A3_GameplayScene::updateHud()
+// updates the HUD; 0 updates all, 1 updates health, 2 updates score, and 3 updates lives.
+void A3_GameplayScene::updateHud(int stat)
 {
-	// this->removeChild(hud); // removes the hud from the draw list momentarily
-	scoreLabel->setString(std::to_string(pShip->getScore())); // updates score
-	lifeLabel->setString("LIVES: " + std::to_string(pShip->lives) + " "); // updates life count
+	if (displayHud == false) // if the hud display is off, the hud isn't updated.
+		return;
 
+	if (stat == 0 || stat == 1) // update health bar
+	{
+		// The index of the actual health bar is '1'.
+		hpBar[1]->setScale(pShip->getHealth() / pShip->getMaxHealth()); // the size of the hp bar depends on the percentage.
+		// hpBar[1]->clear();
+
+	}
+
+	if (stat == 0 || stat == 2) // update score
+		scoreLabel->setString(std::to_string(pShip->getScore())); // updates score
+	
+	if (stat == 0 || stat == 3) // update life count		
+		lifeLabel->setString("LIVES: " + std::to_string(pShip->lives) + " "); // updates life count
+
+
+	/*
 	// Re-calculating the health bar
 	hpNode->clear();
 	
@@ -478,7 +526,11 @@ void A3_GameplayScene::updateHud()
 	
 
 	hpNode->drawRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F(Color3B(240.0F, 240.0F, 240.0F), 1.0F)); // the outline. Color3B is used for compatibility with traditional RGB
-
+	*/
+	
+	// only the size of the bar needs to be changed. This is at index 1.
+	// *lifeStr = "3";
+	
 	// this->addChild(hud); // adds the hud at the end of the draw list
 }
 

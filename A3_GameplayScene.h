@@ -63,7 +63,11 @@ protected:
 	void updateProjectiles(float deltaTime);
 	void collisions(); // handles all collisions
 
-	void updateHud(); // updates the game hud with new information
+	// Updates the hud information. The value passed changes what update is being done. A '0' updates everything.
+	// 1: update health bar
+	// 2: update score
+	// 3: update life count
+	void updateHud(int stat = 0); // updates the game hud with new information
 
 
 private:
@@ -71,10 +75,13 @@ private:
 	Director * director;
 
 	DrawNode * hud; // a second layer used to put the hud on screen.
-	Label * scoreLabel; // saves the score
-	Label * lifeLabel; // saves the amount of lives
+	Label * scoreLabel; // saves the score label that goes into HUD.
+	// std::string * const scoreStr = new std::string(""); // saves the string used for the score.
 
-	DrawNode * hpNode; // saves the hp
+	Label * lifeLabel; // saves the amount of lives
+	// std::string * const lifeStr = new std::string(""); // saves the string used to set the lifeLabel's string.
+
+	// DrawNode * hpNode; // saves the hp
 	// Saves the location of the assets used to create the health bar. There are 6 assets used.
 	/*
 		[0]: HP Bar BG - a black background put behind the HP bar. It is the same size as a full hp bar.
@@ -84,9 +91,9 @@ private:
 		[4]: Sepration Line (0.75) - separation line on the health bar. It makrs 3/4 of the HP bar.
 		[5]: Outline - outlines the HP Bar.
 	*/
-	DrawNode * hpBar[6];
+	DrawNode * hpBar[6] = { DrawNode::create(), DrawNode::create(), DrawNode::create(), DrawNode::create(), DrawNode::create(), DrawNode::create()};
 
-	Size BARSIZE = Size(200.0F, 40.0F); // the size of the health bar
+	bool displayHud = true; // turns the hud display on/off
 
 	// the screen's width and height
 	static float screenWidth;

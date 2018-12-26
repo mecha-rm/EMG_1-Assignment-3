@@ -1,6 +1,7 @@
 #include "Entity.h"
-
 #include "UtilityMath.h"
+
+#include <iostream>
 #include <cmath>
 #include <random>
 
@@ -232,6 +233,18 @@ void Entity::addForce(float x, float y)
 	force.y += y;
 }
 
+// gets the current velocity of the entity
+Vec2 Entity::getVelocity() { return velocity; }
+
+// sets the current velocity of the entity
+void Entity::setVelocity(Vec2 velocity) { this->velocity = velocity; }
+
+// sets the current velocity of the entity
+void Entity::setVelocity(float x, float y) { velocity = Vec2(x, y); }
+
+// adds to the entity's velocity
+void Entity::addVelocity(float x, float y) { velocity += Vec2(x, y); }
+
 // gets the speed limit
 bool Entity::getSpeedLimiter() { return speedLimiter; }
 
@@ -277,7 +290,6 @@ void Entity::update(float deltaTime)
 	// Getting the current acceleration. Acceleration is equal to the current amount of force being applied, divided by the mass of the object.
 	
 	acceleration = force / mass;
-
 	
 	if (rotateLR) // controls whether the entity will rotate or not when certain buttons are pressed.
 	{
@@ -287,6 +299,7 @@ void Entity::update(float deltaTime)
 	}
 	
 	velocity += acceleration * deltaTime;
+	//  spaceShip->velocity += Vector3(-sinf(spaceShip->theta / 180 * M_PI), cosf(spaceShip->theta / 180 * M_PI), 0.0f) * dt * rotateScalar
 
 	// Setting the ship's maximum speed. How the velocity is set needs to be altered.
 	

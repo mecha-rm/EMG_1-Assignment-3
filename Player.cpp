@@ -37,5 +37,6 @@ void Player::setLives(int lives) { this->lives = lives; }
 
 void Player::update(float deltaTime)
 {
+	// std::cout << "(" << getVelocity().x << ", " << getVelocity().y << ")" << std::endl;
 	Entity::update(deltaTime); // calls the entity update function
 }
