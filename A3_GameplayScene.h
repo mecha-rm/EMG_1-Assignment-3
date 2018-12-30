@@ -61,7 +61,7 @@ protected:
 	void updatePlayer(float deltaTime);
 	void updateEnemies(float deltaTime);
 	void updateProjectiles(float deltaTime);
-	void collisions(); // handles all collisions
+	void collisions(float deltaTime); // handles all collisions
 
 	// Updates the hud information. The value passed changes what update is being done. A '0' updates everything.
 	// 1: update health bar
@@ -69,6 +69,7 @@ protected:
 	// 3: update life count
 	void updateHud(int stat = 0); // updates the game hud with new information
 
+	// void onExit();
 
 private:
 	// Engine
@@ -91,8 +92,10 @@ private:
 		[4]: Sepration Line (0.75) - separation line on the health bar. It makrs 3/4 of the HP bar.
 		[5]: Outline - outlines the HP Bar.
 	*/
-	DrawNode * hpBar[6] = { DrawNode::create(), DrawNode::create(), DrawNode::create(), DrawNode::create(), DrawNode::create(), DrawNode::create()};
 
+	DrawNode * hpBar[6] = { DrawNode::create(), DrawNode::create(), DrawNode::create(), DrawNode::create(), DrawNode::create(), DrawNode::create()};
+	const int BARLEN = sizeof(hpBar) / sizeof(*hpBar); // the amount of elements in HPBAR
+	Size BARSIZE = Size(200.0F, 40.0F); // the size of the health bar
 	bool displayHud = true; // turns the hud display on/off
 
 	// the screen's width and height
@@ -101,7 +104,6 @@ private:
 
 	//Background Sprite
 	Sprite* spr_BG;
-	Sprite* spr_BG2; // unneeded?
 
 	// Vectors and player objects
 	Player * pShip;

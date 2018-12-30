@@ -2,6 +2,7 @@
 #pragma once
 #include "cocos2d.h"
 
+#include <iostream>
 #include <string>
 
 using namespace cocos2d;
@@ -23,6 +24,13 @@ public:
 	void setSprite(Sprite*);
 	// PhysicsBody* getBody();
 	
+	// Sets the opacity of the sprite using a percentage. The sprite's built in opacity ranges from 0 to 255.
+	// The value ranges from 0.0 to 1.0. A value greater than '1.0' will be set to 1.0F, and a value less than 0.0F will be set to 0.0F.
+	void setOpacityPercentage(float opacity);
+
+	// Gets the opacity of the sprite as a percentage. The sprite's built in opacity ranges from 0 to 255.
+	float getOpacityPercentage();
+	
 	// gets the texture (image) of the sprite. Both do the same thing.
 	void setTexture(std::string filePath);
 	void setTexture(Texture2D * texture);
@@ -34,9 +42,11 @@ public:
 	// changing the sprite's position
 	void setPosition(Vec2 position);
 	
-	// Positions, and sprite's current size
+	// Positions
+	// x-axis position
 	float getPositionX();
 	void setPositionX(float x);
+	// y-axis position
 	float getPositionY();
 	void setPositionY(float y);
 
@@ -130,11 +140,15 @@ public:
 	// sets the damage an entity gives out
 	void setDamage(float damage);
 
-	// Updates the entity's positon.
-	void update(float deltaTime);
+	// If 'true' then the entity can be destroyed. If 'false', then the entity cannot be destroyed.
+	bool getKillable();
+
 	// Gets te amount of time the entity has existed for.
 	float getTime();
 
+	// Updates the entity's positon.
+	void update(float deltaTime);
+	
 	float theta = 0.0F; // the rotation factor of the entity
 	bool rotateLR; //makes the ship rotate when left and right are pressed.
 
@@ -154,12 +168,18 @@ protected:
 	// sets the maximum health
 	void setMaxHealth(float maxHealth);
 
+	// Sets whether an entity can be destroyed or not.
+	void setKillable(bool killable);
+	// Toggles on/off the 'killable' parameter for the enemy.
+	void setKillable();
+
+	Sprite* sprite; // the sprite of the entity.
+	bool killable = true; // allows the entity to take damage and be killed.
+
 private:
 	static Vec2 wrapPointsMin; // the minimum wrapping points for the x and y axes (screen 9s)
 	static Vec2 wrapPointsMax; // the maximum wrapping points for the x and y axes (screen length and width)
 
-	Sprite* sprite;
-	// float *x, *y;
 	float width = 0;
 	float height = 0;
 	float radius = 0; // the radius of the hit circle. Collision takes into account the scale factor of the character.
@@ -177,7 +197,7 @@ private:
 	// Making this 'const' causes a problem
 	const float MAXVELOCITY; // the fastest the ship can go.
 
-	bool SLOWDOWN = true; // forces the entity to slow down
+	const bool SLOWDOWN = true; // forces the entity to slow down when no force is applied
 	const float FORCESTOP = 0.001; // forces the ship to stop after dropping below a certain speed
 
 	float currentHealth = 1; // the health of the entity

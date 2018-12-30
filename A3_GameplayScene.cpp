@@ -1,4 +1,5 @@
 #include "A3_GameplayScene.h"
+#include "A3_GameoverScene.h"
 #include "UtilityMath.h"
 
 // #include "A3_GameoverScene.h"
@@ -147,8 +148,8 @@ void A3_GameplayScene::keyDownCallback(EventKeyboard::KeyCode keyCode, Event* ev
 	{
 		std::cout << "Display Toggled!" << std::endl;
 		displayHud = !displayHud;
+		// Since the layer order needs tobe changed one-by-one, this is done elsewhere.
 		// If the hud is on, it is put on layer 2. If it's off, it's put on layer -1, which is behind everything.
-		(displayHud) ? hud->setLocalZOrder(2) : hud->setLocalZOrder(-1);
 	}
 	
 	std::cout << std::endl;
@@ -197,12 +198,11 @@ void A3_GameplayScene::keyUpCallback(EventKeyboard::KeyCode keyCode, Event* even
 void A3_GameplayScene::initSprites()
 {
 	Enemy* enemy; // generic enemy object
-	const int BARLEN = sizeof(hpBar)/sizeof(*hpBar); // the amount of elements in HPBAR
-	Size BARSIZE = Size(200.0F, 40.0F); // the size of the health bar
 
-	// image starts in the 'resource' folder
-	//Init the background sprites
+	// Image starts in the 'resource' folder.
+	// Init the background sprite.
 	spr_BG = Sprite::create("images/space_bg1.jpg"); //Load the handle
+	
 	spr_BG->setAnchorPoint(Vec2(0.5f, 0.5f)); //Ensure the middle of the background is the anchor point
 	spr_BG->setPosition(director->getWinSizeInPixels().width / 2.0f, director->getWinSizeInPixels().height / 2.0f); // centre background; ensure the middle of the background is the anchor point
 	this->addChild(spr_BG); // Add the sprite, pushed way to the back
@@ -215,7 +215,8 @@ void A3_GameplayScene::initSprites()
 	Entity::setWrapPointsMax(Vec2(screenWidth, screenHeight));
 
 	// Creates the player ship; all values beyond the constructor are set in the player class
-	pShip = new Player(Vec2(director->getWinSizeInPixels().width / 2.0f, director->getWinSizeInPixels().height / 2.0f), "images/player_ship.png", 4);
+	pShip = new Player(Vec2(director->getWinSizeInPixels().width / 2.0f, director->getWinSizeInPixels().height / 2.0f), "images/player_ship_ss.png");
+	pShip->getSprite()->setGlobalZOrder(2);
 	// smallAsteroid = new Enemy(1);
 	// largeAsteroid = new Enemy(2);
 
@@ -224,19 +225,18 @@ void A3_GameplayScene::initSprites()
 	// Starts off with random asteroids of varying sizes
 	for (int i = 0; i < 3; i++)
 	{
-		enemy = new Enemy(rand() % 2 + 1);
-		enemies.push_back(enemy); // to keep track of the enemy
-		this->addChild(enemy->getSprite());
+		spawnEnemy(rand() % 2 + 1);
 	}
 	
-	// HUD
+	// HUD; drawn on Layer 3
 	hud = new DrawNode();
 	hud->setName("hud"); // used to identify the node
-	hud->setLocalZOrder(2); // putting it on the second layer, which places everything part of it above everything else.
+	hud->setGlobalZOrder(3); // putting it on the second layer, which places everything part of it above everything else.
 	
 	// Labels
 	// *scoreStr = "0"; // starting score string value.
 	scoreLabel = Label::create("0", "fonts/arial.ttf", 25.0F, Size(screenWidth, screenHeight), TextHAlignment::CENTER, TextVAlignment::TOP);
+	scoreLabel->setGlobalZOrder(3);
 	scoreLabel->setName("score");
 	
 	scoreLabel->setAnchorPoint(cocos2d::Vec2(0.0, 0.0));
@@ -246,8 +246,10 @@ void A3_GameplayScene::initSprites()
 
 	// *lifeStr = "LIVES: " + std::to_string(pShip->getLives()) + " ";
 	lifeLabel = Label::create("LIVES: " + std::to_string(pShip->getLives()) + " ", "fonts/arial.ttf", 25.0F, Size(screenWidth, screenHeight), TextHAlignment::RIGHT, TextVAlignment::TOP);
+	lifeLabel->setGlobalZOrder(3);
 	lifeLabel->setName("lives");
 	lifeLabel->setAnchorPoint(cocos2d::Vec2(0.0, 0.0));
+	lifeLabel->setPosition(lifeLabel->getPosition() - Vec2(5.0F, 0.0F));
 	lifeLabel->enableShadow();
 	hud->addChild(lifeLabel);
 	
@@ -267,20 +269,28 @@ void A3_GameplayScene::initSprites()
 	*/
 
 	// Background Health
+	hpBar[0]->setGlobalZOrder(3);
 	hpBar[0]->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F::BLACK);
 	
 	// The actual health bar
+	hpBar[1]->setGlobalZOrder(3);
 	hpBar[1]->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width * pShip->getHealth() / pShip->getMaxHealth(), screenHeight - 5.0F), Color4F::GREEN);
-	hpBar[1]->setAnchorPoint(Vec2(0.0F, 0.0F)); // this is the only shape that gets altered, so the anchour point needs to be defined.
+	// hpBar[1]->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width * pShip->getHealth() / pShip->getMaxHealth(), screenHeight - 5.0F), Color4F::GREEN);
+	hpBar[1]->setAnchorPoint(Vec2(1.0F, 0.0F)); // this is the only shape that gets altered, so the anchour point needs to be defined.
+	
 
 	// Makes three lines seperating the sections on the health bar. Goes through indexes 2 - 4
 	for (int i = 2; i < 5; i++)
+	{
+		hpBar[i]->setGlobalZOrder(3);
 		hpBar[i]->drawLine(Vec2(5.0F + BARSIZE.width / 4 * (i - 1), screenHeight - 5.0F), Vec2(5.0F + BARSIZE.width / 4 * (i - 1), screenHeight - BARSIZE.height - 5.0F), Color4F::GRAY);
+	}
+		
 	
-
+	hpBar[5]->setGlobalZOrder(3);
 	hpBar[5]->drawRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width, screenHeight - 5.0F), Color4F(Color3B(240.0F, 240.0F, 240.0F), 1.0F)); // the outline. Color3B is used for compatibility with traditional RGB
 	
-	for (int i = 0; i < BARLEN; i++)
+	for (int i = 0; i < BARLEN; i++) // adds all hud assets to the 'hud' node.
 	{
 		hud->addChild(hpBar[i]);
 	}
@@ -311,6 +321,8 @@ void A3_GameplayScene::spawnEnemy(unsigned short int type)
 void A3_GameplayScene::update(float deltaTime)
 {
 	static float spawnTimer; // the timer used for spawning enemies
+	static bool transition = false; // checks to see if there is a transition happening.
+
 	timer += deltaTime; // gets delta time across 'x' period of time
 	spawnTimer += deltaTime;
 
@@ -329,11 +341,59 @@ void A3_GameplayScene::update(float deltaTime)
 	updateEnemies(deltaTime);
 	updateProjectiles(deltaTime);
 
-	collisions(); // goes through collisions
+	collisions(deltaTime); // goes through collisions
 	// updateHud(); // updates the HUD information; now only updates whenever necessary
 	// std::cout << "pShip Theta - D: " << umath::radiansToDegrees(pShip->theta) << " R: " << pShip->theta << std::endl;
+
+	// if the global 'z' order of the hud is -1, but displayHud is on, that means the layering needs to be changed.
+	if (displayHud && hud->getGlobalZOrder() < 0)
+	{
+		// Puts the hud in front of everything.
+		hud->setGlobalZOrder(3);
+		scoreLabel->setGlobalZOrder(3);
+		lifeLabel->setGlobalZOrder(3);
+		
+		for (int i = 0; i < sizeof(hpBar) / sizeof(*hpBar); i++)
+		{
+			hpBar[i]->setGlobalZOrder(3);
+		}
+	}
+	else if (!displayHud && hud->getGlobalZOrder() >= 0) // if 'displayHud' is turned off, but the global order
+	{
+		// puts the HUD behind everything.
+		hud->setGlobalZOrder(-1);
+		scoreLabel->setGlobalZOrder(-1);
+		lifeLabel->setGlobalZOrder(-1);
+
+		for (int i = 0; i < sizeof(hpBar) / sizeof(*hpBar); i++)
+		{
+			hpBar[i]->setGlobalZOrder(-1);
+		}
+	}
+
+	// Moves over to the game over screen if the player's health is less than or equal to '0'.
+	if (pShip->getHealth() <= 0 && !transition)
+	{
+		if (pShip->getLives() > 0) // if the player still has lives left
+		{
+			pShip->setHealth(pShip->getMaxHealth()); // restoring health.
+			pShip->setLives(pShip->getLives() - 1); // decreases the life count by '1'.
+			pShip->setPosition(Vec2(director->getWinSizeInPixels().width / 2, director->getWinSizeInPixels().height / 2)); // puts the player back at te middle of the screen
+			updateHud(1); // updates health bar
+			updateHud(3); // updates lives
+		}
+		else // if the player is having a game over.
+		{
+			Scene *newScene = A3_GameoverScene::createScene();
+			Director::getInstance()->replaceScene(TransitionCrossFade::create(1.0F, newScene));
+			// Director::getInstance()->replaceScene(newScene);
+			transition = true;
+		}
+
+	}
 }
 
+// updates related to the player
 void A3_GameplayScene::updatePlayer(float deltaTime)
 {
 	// Sets whether pressing left and right rotates, or moves the ship.
@@ -348,8 +408,8 @@ void A3_GameplayScene::updatePlayer(float deltaTime)
 	{
 		if (locTime > 0.2F) // has a delay between when a projectile can be fired again.
 		{
-			proj = new Projectile(pShip->getPosition(), "images/projectile2.png", 7.50F, pShip->theta, 5.0F); // creates a new projectile
-
+			// creates a new projectile that lasts for 'x' amount of milliseconds
+			proj = new Projectile(pShip->getPosition(), "images/projectile2.png", 500.0F, 7.50F, pShip->theta, 1.0F, 3.5F); // at a time of 3.5F milliseconds, the projectile just barely does a full horizontal loop of the screen.
 			projectiles.push_back(proj);
 			this->addChild(projectiles.at(projectiles.size() - 1)->getSprite());
 			locTime = 0;
@@ -410,6 +470,7 @@ void A3_GameplayScene::updateEnemies(float deltaTime)
 	}
 }
 
+// updates related to the projectiles.
 void A3_GameplayScene::updateProjectiles(float deltaTime)
 {
 	for (int i = 0; i < projectiles.size(); i++)
@@ -426,24 +487,53 @@ void A3_GameplayScene::updateProjectiles(float deltaTime)
 }
 
 // collisions
-void A3_GameplayScene::collisions()
+void A3_GameplayScene::collisions(float deltaTime)
 {
 	Enemy * enemy; // temporary enemy object
+	
+	Vec2 distVec; // the distance between two objects as a vector
+	Vec2 force; // a variable used to hold the force being applied to an entity.
 	// bool statUpdate = false; // tells the program to update the hud
 				   
 	// Player colission with enemies
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		// If there is collision, hte player loses health.
-		if (umath::collision(pShip, enemies[i]))
+		// If the secondary radius of the enemy is not equal to '0', then it needs to be checked for collision.
+		if (enemies.at(i)->getSecondRadius() != 0.0F)
 		{
-			pShip->setHealth(pShip->getHealth() - enemies.at(i)->getDamage());
-			updateHud(1); // updates the health bar
+			// If the player is within the range of the second radius
+			if (umath::collision(pShip->getPosition(), pShip->getScaledRadius(), enemies[i]->getPosition(), enemies[i]->getScaledSecondRadius()))
+			{
+				switch (enemies[i]->getType())
+				{
+				// Black Hole; the player is drawn towards it.
+				case 3:
+					// gets the distance between the ship and the enemy as a vector
+					distVec = Vec2(pShip->getPositionX() - enemies[i]->getPositionX(), pShip->getPositionY() - enemies[i]->getPositionY());
+
+					force = enemies[i]->getForce2(); // gets the force that will be applied to the player.
+
+					// applies force to the ship (divided by the ship's mass) in the direction of the normalize distance between the ship and the enemy. It is also multiplied by the blackhole's bass, and deltaTime.
+					pShip->setVelocity(pShip->getVelocity() - Vec2(distVec.getNormalized().x * force.x * enemies[i]->getMass() / pShip->getMass(), distVec.getNormalized().y * force.y * enemies[i]->getMass() / pShip->getMass()) * deltaTime);
+					break;
+				}
+			}
+		}
+
+		// If there is collision, the player loses health. This collision is with the enemy's main hitcircle.
+		if (enemies.at(i)->getRadius() != 0.0F && umath::collision(pShip, enemies[i]))
+		{
+			if (pShip->getKillable()) // if the player's able to take damage.
+			{
+				pShip->setHealth(pShip->getHealth() - enemies.at(i)->getDamage());
+				pShip->playerHit(); // triggers invincibility frames
+				updateHud(1); // updates the health bar
+			}
+			
 			// statUpdate = true; // the hud needs to be updated
 			break; // the player can only take damage from one enemy per frame.
 		}
 	}
-
 
 	// Projectile Collision with Enemies
 	for (int i = 0; i < projectiles.size(); i++)
@@ -453,13 +543,8 @@ void A3_GameplayScene::collisions()
 			// If there is collision
 			if (umath::collision(projectiles[i], enemies[j]))
 			{
-				// put in deconstructor
-				projectiles.at(i)->getSprite()->runAction(RemoveSelf::create()); // removes the sprite from the draw list
-				projectiles.erase(projectiles.begin() + i); // removes the sprite from the vector list
-				i--;
-
 				// Large Asteroid splits into 2-4 small asteroids.
-				if (enemies[j]->getType() == 2)
+				if (enemies[j]->getKillable() && enemies[j]->getType() == 2)
 				{
 					for (int k = rand() % 3 + 2; k > 0; k--) // spawns two to four small asteroids
 					{
@@ -472,14 +557,30 @@ void A3_GameplayScene::collisions()
 				}
 				else
 				{
-					pShip->increaseScore(10); // adds '10' to the player score
-					updateHud(2); // updates the score
-					// statUpdate = true; // updates the display.
+					switch (enemies[j]->getType())
+					{
+					case 3: // black holes
+						break;
+
+					default: // everything else
+						pShip->increaseScore(10); // adds '10' to the player score
+						updateHud(2); // updates the score
+						// statUpdate = true; // updates the display.
+					}
+					
 				}
 
-				enemies.at(j)->setHealth(enemies.at(j)->getHealth() - 1); // decreases enemy health by '1'. In the enemy update, an enemy is deleted if it has a health of '0' or less.
+				if(enemies.at(j)->getKillable()) // if the enemy can be killed, it loses health.
+					enemies.at(j)->setHealth(enemies.at(j)->getHealth() - projectiles.at(i)->getDamage()); // decreases enemy health by '1'. In the enemy update, an enemy is deleted if it has a health of '0' or less.
+				
 				// enemies.at(j)->getSprite()->runAction(RemoveSelf::create()); // removes the sprite from the draw list
 				// enemies.erase(enemies.begin() + j); // erases the enemy from the enemy vector
+				
+				// Deleting the projectile
+				projectiles.at(i)->getSprite()->runAction(RemoveSelf::create()); // removes the sprite from the draw list
+				projectiles.erase(projectiles.begin() + i); // removes the sprite from the vector list
+				i--;
+				
 				break;
 			}
 		}
@@ -500,8 +601,14 @@ void A3_GameplayScene::updateHud(int stat)
 
 	if (stat == 0 || stat == 1) // update health bar
 	{
+		// changed from a scale operation since it kept screwing up the formatting.
+		hpBar[1]->clear();
+		hpBar[1]->drawSolidRect(Vec2(5.0F, screenHeight - BARSIZE.height - 5.0F), Vec2(5.0F + BARSIZE.width * pShip->getHealth() / pShip->getMaxHealth(), screenHeight - 5.0F), Color4F::GREEN);
+		
 		// The index of the actual health bar is '1'.
-		hpBar[1]->setScale(pShip->getHealth() / pShip->getMaxHealth()); // the size of the hp bar depends on the percentage.
+		// hpBar[1]->setScale(pShip->getHealth() / pShip->getMaxHealth(), 1.00F); // the size of the hp bar depends on the percentage.
+		// hpBar[1]->setPosition(hpBar[1]->getPosition() + Vec2(1.0, 0.0));
+		// std::cout << hpBar[1]->getPosition().x << ", " << hpBar[1]->getPosition().y << std::endl;
 		// hpBar[1]->clear();
 
 	}
@@ -533,6 +640,8 @@ void A3_GameplayScene::updateHud(int stat)
 	
 	// this->addChild(hud); // adds the hud at the end of the draw list
 }
+
+// void A3_GameplayScene::onExit() {}
 
 /*
 // Updates both mouse and keyboard inputs.

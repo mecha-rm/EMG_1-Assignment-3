@@ -14,9 +14,11 @@ public:
 	// Called when the scene is entered.
 	void onEnter();
 
+	bool init();
 	void initListeners(); // initalizes event handlers
 	void initKeyboardListener();
 	void initContactListener();
+	void initSprites();
 
 	void mouseDownCallback(Event* event);
 	void mouseUpCallback(Event* event);
@@ -32,10 +34,18 @@ public:
 	CREATE_FUNC(A3_GameoverScene);
 
 private:
-	
+	Director * director;
+
 	// Event listeners
 	EventListenerMouse* mouseListener;
 	EventListenerKeyboard* keyboardListener;
+
+	// Background Sprite
+	Sprite * spr_BG;
+	// Gameover Text
+	Label * gmLabel;
+	// Additional message text
+	Label * msgLabel;
 
 } GameoverScene, GameOverScene;
 

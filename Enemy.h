@@ -21,6 +21,24 @@ public:
 	// returns the enemy type
 	unsigned short int getType();
 
+	// sets the secondary radius of the enemy. This is the second radius of the enemy at the enemy's default size.
+	void setSecondRadius(float radius2);
+
+	// gets the secondary radius of the enemy. This is the second radius of the enemy at the enemy's default size.
+	float getSecondRadius();
+
+	// gets the second radius with the scale factor applied. This is the radius of the enemy at the enemy's current scale.
+	void setScaledSecondRadius(float scaledRadius);
+
+	// sets the second radius with the scale factor applied. This is the radius of the enemy at the enemy's current scale.
+	float getScaledSecondRadius();
+
+	// gets the second force that an enemy has. This force ISN'T used for movement, but something else.
+	Vec2 getForce2();
+
+	// gets a secondary force. This force is reserved for operations regarding the enemy, movement not withstanding.
+	void setForce2(Vec2 force2);
+
 	// Returns a random enemy object; the chances are different for each type.
 	static Enemy * getRandEnemy();
 	
@@ -49,6 +67,7 @@ private:
 
 	int shield = 0; // the enemy's shield
 	float radius2 = 0; // a second radius for the enemy. This is used for black holes.
+	
 
 	// the spawn rates of all the enemies
 	static const int SRLEN;
@@ -56,5 +75,6 @@ private:
 	static int spawnRates[];
 
 	Vec2 force; // the force of the entity
+	Vec2 force2; // a secondary force. For the Black Hole, this force is used to draw the player in.
 };
 

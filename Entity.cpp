@@ -1,7 +1,6 @@
 #include "Entity.h"
 #include "UtilityMath.h"
 
-#include <iostream>
 #include <cmath>
 #include <random>
 
@@ -49,6 +48,24 @@ void Entity::setSprite(Sprite * sprite)
 	setPosition(sprite->getPosition());
 	setScale(sprite->getScale()); // sets the scale of the sprite so that the height and width are updated.
 }
+
+// Sets the opacity of the sprite using a percentage. The sprite's built in opacity ranges from 0 to 255.
+void Entity::setOpacityPercentage(float opacity)
+{
+	if (opacity > 1.0F) // setting the opacity to 100% if it's over 100%.
+	{
+		opacity = 1.0F;
+	}
+	else if (opacity < 0.0F) // setting the opacity to '0' if the value given is less than 0%.
+	{
+		opacity = 0.0F;
+	}
+
+	sprite->setOpacity(255 * opacity); // setting the sprite's new opacity.
+}
+
+// Gets the opacity of the sprite as a percentage. The sprite's built in opacity ranges from 0 to 255.
+float Entity::getOpacityPercentage() { return sprite->getOpacity() / 255; }
 
 // sets the texture of the sprite with an image path
 void Entity::setTexture(std::string filePath) { sprite->setTexture(filePath); }
@@ -156,7 +173,7 @@ Vec2 Entity::rotateEntity(float theta, Vec2 direcVec)
 	
 	// The position is based on the middle of the entity.
 	// acceleration = umath::rotate(acceleration, Vec2(0.0F, 0.0F), -theta); // rotates the entity's velocity
-	return umath::rotate(direcVec, Vec2(0.0F, 0.0F), -theta);
+	return umath::rotate(direcVec, -theta);
 }
 
 // Gets whether the object wraps the screen or not.
@@ -281,11 +298,22 @@ float Entity::getDamage() { return damage; }
 // sets the amount of damage an entity takes
 void Entity::setDamage(float damage) { this->damage = damage; }
 
+// If 'true' then the entity can be destroyed. If 'false', then the entity cannot be destroyed.
+bool Entity::getKillable() { return killable; }
+
+// Sets whether an entity can be destroyed or not.
+void Entity::setKillable(bool killable) { this->killable = killable; }
+
+// Toggles on/off the 'killable' parameter for the enemy.
+void Entity::setKillable() { killable = !killable; }
+
+// returns how long an entity has existed for.
+float Entity::getTime() { return timer; }
+
 // updates the sprite
 void Entity::update(float deltaTime)
 {
 	Vec2 position(sprite->getPosition());
-	Vec2 temp;
 
 	// Getting the current acceleration. Acceleration is equal to the current amount of force being applied, divided by the mass of the object.
 	
@@ -321,14 +349,14 @@ void Entity::update(float deltaTime)
 	if (SLOWDOWN)
 	{
 		// 'x' direction
-		if (force.x == 0 && velocity.x != 0)
+		if (acceleration.x == 0 && velocity.x != 0)
 		{
 			velocity.x *= DECELERATE;
 			if (abs(velocity.x * deltaTime) <= FORCESTOP)
 				velocity.x = 0;
 		}
 		// 'y' direction
-		if (force.y == 0 && velocity.y != 0)
+		if (acceleration.y == 0 && velocity.y != 0)
 		{
 			velocity.y *= DECELERATE;
 			if (abs(velocity.y * deltaTime) <= FORCESTOP)
@@ -352,8 +380,7 @@ void Entity::update(float deltaTime)
 	}
 	else // has the entity travel at the same velocity each timer.
 	{
-		position.x += force.x / mass;
-		position.y += force.y / mass;
+		position += acceleration * deltaTime;
 	}
 	
 
@@ -389,6 +416,7 @@ void Entity::update(float deltaTime)
 	{
 		if ((position.x <= wrapPointsMin.x - width / 2 ^ position.x >= wrapPointsMax.x + width / 2) || (position.y <= wrapPointsMin.y - height / 2 ^ position.y >= wrapPointsMax.y + height / 2))
 		{
+			currentHealth = 0.0F; // a health of '0' causes an entity to get deleted.
 			// delete this;
 		}
 		
@@ -398,9 +426,6 @@ void Entity::update(float deltaTime)
 	
 	timer += deltaTime; // adds to the timer
 }
-
-// returns how long an entity has existed for.
-float Entity::getTime() { return timer; }
 
 Entity::~Entity()
 {
