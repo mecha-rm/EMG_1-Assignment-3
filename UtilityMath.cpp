@@ -204,7 +204,26 @@ cocos2d::Vec3 UtilityMath::rotate(cocos2d::Vec3 points, float theta, char axis)
 float UtilityMath::dotAngle(cocos2d::Vec2 v1, cocos2d::Vec2 v2)
 {
 	// Equation: (cos ^ -1)(v1 . v2 / (||v1||)(||v2||))
-	return acosf(v1.dot(v2) / (v1.length() * v2.length()));
+	return acosf(cocos2d::Vec2::dot(v1, v2) / (v1.length() * v2.length()));
+}
+
+// gets the angle of a right angled triangle based on the passed values.
+float UtilityMath::getRightTriangleAngle(float adj, float opp, float hyp, char c)
+{
+	c = tolower(c); // making sure the character is lowercase
+	switch (c)
+	{
+	case 's': // SOH (Sin A = Opposite / Hypotenuse)
+		return asinf(opp / hyp);
+		break;
+
+	case 'c': // CAH (Cos A = Adjacent / Hypotenuse)
+		return acosf(adj / hyp);
+		break;
+	case 't': // TOA (Tan A = Opposite / Adjacent)
+		return atanf(opp / adj);
+		break;
+	}
 }
 
 // conversion from degrees to radians. 1 degree = pi/180 radians. 

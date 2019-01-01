@@ -107,11 +107,6 @@ private:
 
 	// Vectors and player objects
 	Player * pShip;
-	// Enemy * smallAsteroid;
-	// Enemy * largeAsteroid;
-	// Enemy * planet;
-	// Enemy * shooter;
-	// Enemy * kamikaze;
 
 	std::vector<Enemy*> enemies;
 	std::vector<Projectile*> projectiles;

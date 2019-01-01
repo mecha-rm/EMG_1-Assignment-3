@@ -321,9 +321,7 @@ void Entity::update(float deltaTime)
 	
 	if (rotateLR) // controls whether the entity will rotate or not when certain buttons are pressed.
 	{
-		acceleration = rotateEntity(acceleration);
-		// acceleration = rotateEntity(acceleration.getNormalized()) * (250); // rotates entity
-		// position = sprite->getPosition(); // gets the sprite's position, since it has been effected from the rotation
+		acceleration = rotateEntity(acceleration); // rotates the force being applied to the entity.
 	}
 	
 	velocity += acceleration * deltaTime;
@@ -363,14 +361,6 @@ void Entity::update(float deltaTime)
 				velocity.y = 0;
 		}
 	}
-	
-	/*
-	if (rotateLR) // controls whether the entity will rotate or not when certain buttons are pressed.
-	{
-		rotateEntity(); // rotates entity
-		position = sprite->getPosition(); // gets the sprite's position, since it has been effected from the rotation
-	}
-	*/
 
 	// Getting the current position. Position = Previous Position + Velocity * Delta Time (Time Passed)
 	if (!constVelocity) // if false, the entity constantly accelerates

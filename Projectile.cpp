@@ -20,9 +20,7 @@ Projectile::Projectile(Vec2 position, std::string imagePath, float speed, float 
 }
 
 
-Projectile::~Projectile()
-{
-}
+Projectile::~Projectile(){}
 
 // The update of the projectile
 void Projectile::update(float deltaTime)

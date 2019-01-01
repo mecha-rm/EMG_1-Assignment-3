@@ -32,6 +32,11 @@ public:
 	// returns the angle between two points in radians. This uses the dot product angle theorem.
 	static float dotAngle(cocos2d::Vec2 v1, cocos2d::Vec2 v2);
 
+	// calculates an angle in a triangle, assuming that it is a right-angle triangle.
+	// adj = adjacent side, opp = opposite side, hyp = hypotenise, c = operation (SOH, CAH, TOA).
+	// For c, input the letter corresponding to the trig identity: c = s > SOH, c = c > CAH, c = t = TOA
+	static float getRightTriangleAngle(float adj, float opp, float hyp, char c);
+
 	// conversion from degrees to radians. 1 degree = pi/180 radians. 
 	static float degreesToRadians(float degrees);
 	// conversion from radians to degrees. 1 radian = 180/pi degrees.

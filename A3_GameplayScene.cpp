@@ -223,10 +223,13 @@ void A3_GameplayScene::initSprites()
 	this->addChild(pShip->getSprite());
 
 	// Starts off with random asteroids of varying sizes
+	
 	for (int i = 0; i < 3; i++)
 	{
 		spawnEnemy(rand() % 2 + 1);
 	}
+	
+	spawnEnemy(7);
 	
 	// HUD; drawn on Layer 3
 	hud = new DrawNode();
@@ -330,7 +333,7 @@ void A3_GameplayScene::update(float deltaTime)
 	screenWidth = director->getWinSizeInPixels().width;
 	screenHeight = director->getWinSizeInPixels().height;
 
-	if(spawnTimer > 2.0F)// when 2 second(s) has passed, an enemy is spawned.
+	if(spawnTimer > 4.0F)// when 2 second(s) has passed, an enemy is spawned.
 	{
 		spawnEnemy(); // spawns the enemy
 		spawnTimer = 0; // puts the timer back at 0.
@@ -406,10 +409,10 @@ void A3_GameplayScene::updatePlayer(float deltaTime)
 
 	if (spaceBar)
 	{
-		if (locTime > 0.2F) // has a delay between when a projectile can be fired again.
+		if (locTime > 0.3F) // has a delay between when a projectile can be fired again.
 		{
 			// creates a new projectile that lasts for 'x' amount of milliseconds
-			proj = new Projectile(pShip->getPosition(), "images/projectile2.png", 500.0F, 7.50F, pShip->theta, 1.0F, 3.5F); // at a time of 3.5F milliseconds, the projectile just barely does a full horizontal loop of the screen.
+			proj = new Projectile(pShip->getPosition(), "images/projectile2.png", 500.0F, 7.50F, pShip->theta, 1.0F, 2.5F); // at a time of 3.5F milliseconds, the projectile just barely does a full horizontal loop of the screen.
 			projectiles.push_back(proj);
 			this->addChild(projectiles.at(projectiles.size() - 1)->getSprite());
 			locTime = 0;
@@ -492,7 +495,11 @@ void A3_GameplayScene::collisions(float deltaTime)
 	Enemy * enemy; // temporary enemy object
 	
 	Vec2 distVec; // the distance between two objects as a vector
+	float distScl; // the distance between two objects as a scalar
 	Vec2 force; // a variable used to hold the force being applied to an entity.
+	float angle; // a variable used to store the angle of an operation.
+	Rect section; // saves a section of the sprite sheet, which is used to change sprites for some enemies.
+
 	// bool statUpdate = false; // tells the program to update the hud
 				   
 	// Player colission with enemies
@@ -516,7 +523,205 @@ void A3_GameplayScene::collisions(float deltaTime)
 					// applies force to the ship (divided by the ship's mass) in the direction of the normalize distance between the ship and the enemy. It is also multiplied by the blackhole's bass, and deltaTime.
 					pShip->setVelocity(pShip->getVelocity() - Vec2(distVec.getNormalized().x * force.x * enemies[i]->getMass() / pShip->getMass(), distVec.getNormalized().y * force.y * enemies[i]->getMass() / pShip->getMass()) * deltaTime);
 					break;
+
+				// Planet; the player is shot at by applying a rotation factor to the shot.
+				case 4:
+					if (enemies[i]->actionAvailable()) // if the planet is ready to fire a shot.
+					{
+						enemy = new Enemy(8); // creates a projectile
+						this->addChild(enemy->getSprite());
+						enemies.push_back(enemy);
+						
+						distVec = Vec2(pShip->getPosition() - enemies[i]->getPosition()); // gets a vector that represents the distance between the planet and the player.
+						distScl = distVec.length();
+						enemy->setPosition(enemies[i]->getPosition()); // sets the position of the projectile
+						enemy->setScale(1.25F); // sets the scale of the projectile up for the planet.
+
+						enemy->theta = umath::degreesToRadians(90 - umath::radiansToDegrees(umath::getRightTriangleAngle(distVec.x, distVec.y, distScl, 'c')));
+						
+
+						if (distVec.y < 0) // if the player is 'below' the planet, then 'theta' is offset by 180 degrees.
+							enemy->theta = umath::degreesToRadians(180) - enemy->theta;
+
+						// enemy->theta = umath::degreesToRadians(rand() % 360 + 1);
+						enemies[i]->actionOcurred(); // tells the enemy that the action has been performed.
+						
+						// std::cout << "enemy->theta: " << umath::radiansToDegrees(enemy->theta) << std::endl;
+						// std::cout << "DirVec: (" << distVec.x << ", " << distVec.y << ") D = " << distScl << std::endl;
+						// std::cout << "DirVec ANGLE: " << umath::radiansToDegrees(umath::getRightTriangleAngle(distVec.x, distVec.y, distScl, 'c')) << "\n" << std::endl;
+						// std::cout << "Theta: " << enemy->theta << std::endl;
+					}
+					break;
+				
+				// Shooter Ship; rotates and fires, but doesn't move.
+				case 5:
+					distVec = Vec2(pShip->getPosition() - enemies[i]->getPosition()); // getting a vector to represent the distance between the player and the enemy (x, y).
+					distScl = distVec.length(); // getting the length of the vector between the player and the ship, which would be the hypotenuse of the triangle.
+
+					// saves the angle that the enemy must rotate to in order to be aligned with the player's ship.
+					angle = umath::degreesToRadians(90 - umath::radiansToDegrees(umath::getRightTriangleAngle(distVec.x, distVec.y, distScl, 'c')));
+
+					if (distVec.y < 0) // if the player is 'below' the ship, then 'theta' is offset by 180 degrees.
+					{
+						angle = umath::degreesToRadians(180) - angle;
+					}
+
+					if (abs(umath::radiansToDegrees(enemies[i]->theta - angle)) <= 2.0F || (abs(umath::radiansToDegrees(enemies[i]->theta - angle)) >= 358.0F))
+					{
+						enemies[i]->theta = angle;
+					}
+					else
+					{
+						enemies[i]->theta = (enemies[i]->theta < angle) ? enemies[i]->theta + umath::degreesToRadians(7) : enemies[i]->theta - umath::degreesToRadians(7); // controls how fast the enemy ship rotates when it sees the player.
+					}
+
+					if (enemies[i]->actionAvailable()) // if the ship is able to fire.
+					{
+						enemy = new Enemy(8); // creates a projectile to be fired at the player.
+						this->addChild(enemy->getSprite());
+						enemies.push_back(enemy);
+
+						enemy->setPosition(enemies[i]->getPosition());
+						enemy->theta = enemies[i]->theta; // takes the enemy's theta and applies it to the projectile.
+						enemy->setForce1(Vec2(0.0F, 70.0F));
+
+						enemies[i]->actionOcurred(); // tells the enemy that the action has occurred.
+					}
+
+					break;
+
+				// Kamikaze Ship
+				case 6:
+					section = enemies[i]->getCrop();
+					if (enemies[i]->getSprite()->getTextureRect().getMinX() != section.getMaxX()) // if the first sprite is being displayed, it switches to the other frame.
+					{
+						enemies[i]->getSprite()->setTextureRect(Rect(section.getMaxX(), 0.0F, section.getMaxX(), section.getMaxY()));
+					}
+
+					distVec = Vec2(pShip->getPosition() - enemies[i]->getPosition()); // getting a vector to represent the distance between the player and the enemy (x, y)
+					distScl = distVec.length(); // getting the length of the vector between the player and the ship, which would be the hypotenuse of the triangle.
+
+					// saves the angle that the enemy must rotate to in order to be aligned with the player's ship.
+					angle = umath::degreesToRadians(90 - umath::radiansToDegrees(umath::getRightTriangleAngle(distVec.x, distVec.y, distScl, 'c')));
+					
+					if (distVec.y < 0) // if the player is 'below' the ship, then 'theta' is offset by 180 degrees.
+					{
+						angle = umath::degreesToRadians(180) - angle;
+
+						// std::cout << "Theta Difference (Degrees): " << umath::radiansToDegrees(enemies[i]->theta - angle) << std::endl;
+						// std::cout << "E-THETA: " << umath::radiansToDegrees(enemies[i]->theta) << "\n" << std::endl;
+					}
+
+					// If the enemy's angle is less than the angle they must be at to hit the player, then it is increased by the the desired angle / 3.
+					// if the enemy's angle is greater than the anele they must be at to hit the player, it is decreased by the desired angle / 3.
+
+					// There is an issue where the angle of the enemy cannot reach a specific point. In these cases, the enemy will rotate the long way around since it can't go passed this point.
+					// This happenes when the enemy reaches an angle of -90 degrees or 270 degrees. In order to get around this issue, the enemy must be put at the angle it's aiming to achieve.
+					// After this point, the enemy will stay on the player until they leave the zone of sight.
+					if (abs(umath::radiansToDegrees(enemies[i]->theta - angle)) <= 2.0F || (abs(umath::radiansToDegrees(enemies[i]->theta - angle)) >= 358.0F))
+					{
+						enemies[i]->theta = angle;
+					}
+					else
+					{
+						enemies[i]->theta = (enemies[i]->theta < angle) ? enemies[i]->theta + umath::degreesToRadians(7) : enemies[i]->theta - umath::degreesToRadians(7); // controls how fast the enemy ship rotates when it sees the player.
+					}
+
+					enemies[i]->addForce(0.0F, 60.0F); // makes the enemy go faster so that it can more easily catch the player.
+					break;
+
+				// BOSS
+				case 7:
+					distVec = Vec2(pShip->getPosition() - enemies[i]->getPosition()); // getting a vector to represent the distance between the player and the enemy (x, y)
+					distScl = distVec.length(); // getting the length of the vector between the player and the ship, which would be the hypotenuse of the triangle.
+
+					// saves the angle that the enemy must rotate to in order to be aligned with the player's ship.
+					angle = umath::degreesToRadians(90 - umath::radiansToDegrees(umath::getRightTriangleAngle(distVec.x, distVec.y, distScl, 'c')));
+
+					if (distVec.y < 0) // if the player is 'below' the ship, then 'theta' is offset by 180 degrees.
+					{
+						angle = umath::degreesToRadians(180) - angle;
+					}
+
+					// Sets the enemy to the proper angle if the difference between its current angle and the desigend angle is small enough.
+					if (abs(umath::radiansToDegrees(enemies[i]->theta - angle)) <= 2.0F || (abs(umath::radiansToDegrees(enemies[i]->theta - angle)) >= 358.0F))
+					{
+						enemies[i]->theta = angle;
+					}
+					// has the 'boss' turn in order to lock on to the player.
+					else
+					{
+						enemies[i]->theta = (enemies[i]->theta < angle) ? enemies[i]->theta + umath::degreesToRadians(5) : enemies[i]->theta - umath::degreesToRadians(5); // controls how fast the enemy ship rotates when it sees the player.
+					}
+
+					// force = enemies[i]->getForce2() * enemies[i]->getMass(); // gets the force that will be applied to the player so that they can be drawn in.
+					// drwas the player towards the boss. The amount of force is effected by the boss's mass. This slightly differs from the calculations used for the black hoel.
+					// pShip->setVelocity(pShip->getVelocity() - Vec2(distVec.getNormalized().x * force.x / pShip->getMass(), distVec.getNormalized().y * force.y / pShip->getMass()) * deltaTime);
+					
+					// if the boss can fire.
+					if (enemies[i]->actionAvailable())
+					{
+						
+						
+
+						if (enemies[i]->getHealth() >= 2.0F && enemies[i]->getHealth() < 3.0f) // if the enemy has 2 health
+						{
+							for (int j = -2; j <= 2; j++) // fires '5' projectiles
+							{
+								enemy = new Enemy(9); // projectile 2
+								enemy->setScale(enemy->getScale() * enemies[i]->getHealth() / enemies[i]->getMaxHealth()); // changes the scale based on how much health the boss has
+								enemy->setMass(enemy->getMass() * enemies[i]->getHealth() / enemies[i]->getMaxHealth()); // sets the mass based on the boss's health
+
+								enemy->setPosition(enemies[i]->getPosition()); // sets the position of the enemy to the position of the boss.
+								enemy->theta = enemies[i]->theta + umath::degreesToRadians(20.0F) * j; // fires shots that are 20 degrees apart; one projectile is guaranteed to go for the player.
+								this->addChild(enemy->getSprite()); // adds the enemy's sprite to the draw list
+								enemies.push_back(enemy); // adds the enemy to the vector
+							}
+						}
+						else if (enemies[i]->getHealth() >= 1.0F && enemies[i]->getHealth() < 2.0f) // if the enemy has 1 health
+						{
+							for (int j = -9; j <= 9; j++) // fires '18' projectiles, essentially going in all directions
+							{
+								enemy = new Enemy(9); // projectile 2
+								enemy->setScale(enemy->getScale() * enemies[i]->getHealth() / enemies[i]->getMaxHealth()); // changes the scale based on how much health the boss has
+								enemy->setMass(enemy->getMass() * enemies[i]->getHealth() / enemies[i]->getMaxHealth()); // sets the mass based on the boss's health
+
+								enemy->setPosition(enemies[i]->getPosition()); // sets the position of the enemy to the position of the boss.
+								enemy->theta = enemies[i]->theta + umath::degreesToRadians(20.0F) * j; // fires shots that are 20 degrees apart; one projectile is guaranteed to go for the player.
+								this->addChild(enemy->getSprite()); // adds the enemy's sprite to the draw list
+								enemies.push_back(enemy); // adds the enemy to the vector
+							}
+							
+						}
+						else // the enemy has maximum health, or no health
+						{
+							enemy = new Enemy(9); // projectile 2
+							enemy->setScale(enemy->getScale() * enemies[i]->getHealth() / enemies[i]->getMaxHealth()); // changes the scale based on how much health the boss has
+							enemy->setMass(enemy->getMass() * enemies[i]->getHealth() / enemies[i]->getMaxHealth()); // sets the mass based on the boss's health
+
+							enemy->setPosition(enemies[i]->getPosition()); // sets the position of the enemy to the position of the boss.
+							enemy->theta = enemies[i]->theta; // makes the shot go in the direction the enemy is facing
+							this->addChild(enemy->getSprite()); // adds the enemy's sprite to the draw list
+							enemies.push_back(enemy); // adds the enemy to the vector
+						}
+
+						enemies[i]->actionOcurred();
+					}
+					break;
 				}
+			}
+			else // if the player is outside of the range.
+			{
+				switch (enemies[i]->getType())
+				{
+				// kamikaze ship
+				case 6:
+					if (enemies[i]->getSprite()->getTextureRect().getMinX() != 0.0F) // if the first image isn't already shown, it switches back to it.
+					{
+						enemies[i]->getSprite()->setTextureRect(enemies[i]->getCrop());
+					}
+				}
+
 			}
 		}
 
@@ -529,7 +734,7 @@ void A3_GameplayScene::collisions(float deltaTime)
 				pShip->playerHit(); // triggers invincibility frames
 				updateHud(1); // updates the health bar
 			}
-			
+
 			// statUpdate = true; // the hud needs to be updated
 			break; // the player can only take damage from one enemy per frame.
 		}
@@ -559,7 +764,29 @@ void A3_GameplayScene::collisions(float deltaTime)
 				{
 					switch (enemies[j]->getType())
 					{
+					case 1: // small asteroid
+						pShip->increaseScore(10); // adds '10' to the player score
+						updateHud(2);
+						break;
+
 					case 3: // black holes
+					case 4: // planets
+					case 8:
+					case 9:
+						break;
+
+					case 5: // shooter
+					case 6: // kamikaze
+						pShip->increaseScore(20); // adds '20' to the player score
+						updateHud(2);
+						break;
+
+					case 7: // boss
+						if (enemies[j]->getShield() == 0) // the boss is actually taking damage, and not just its shield.
+						{
+							pShip->increaseScore(1000); // adds '1000' to the player score
+							updateHud(2);
+						}
 						break;
 
 					default: // everything else
@@ -570,8 +797,22 @@ void A3_GameplayScene::collisions(float deltaTime)
 					
 				}
 
-				if(enemies.at(j)->getKillable()) // if the enemy can be killed, it loses health.
-					enemies.at(j)->setHealth(enemies.at(j)->getHealth() - projectiles.at(i)->getDamage()); // decreases enemy health by '1'. In the enemy update, an enemy is deleted if it has a health of '0' or less.
+				if (enemies.at(j)->getKillable() && enemies.at(j)->getShield() <= 0) // if the enemy can be killed and it has no shield, it loses health.
+				{
+					enemies.at(j)->setHealth(enemies.at(j)->getHealth() - projectiles.at(i)->getDamage()); // In the enemy update, an enemy is deleted if it has a health of '0' or less.
+					
+					// if it's the boss that took damage, then its shields are put back up.
+					if (enemies[j]->getType() == 7 && enemies[j]->getHealth() > 0)
+					{
+						enemies.at(j)->setShield(enemies.at(j)->getMaxShield()); // puts the boss's shield back up
+						enemies.at(j)->setScale(enemies.at(j)->getScale() / 2.0F); // makes the enemy smaller
+						enemies.at(j)->setMass(enemies.at(j)->getMass() / 2.0F);
+					}
+				}
+				else if (enemies.at(j)->getKillable() && enemies.at(j)->getShield() > 0) // if the enemy can be killed and it has a shield, the shield takes damage.
+				{
+					enemies.at(j)->setShield(enemies.at(j)->getShield() - projectiles.at(i)->getDamage());
+				}
 				
 				// enemies.at(j)->getSprite()->runAction(RemoveSelf::create()); // removes the sprite from the draw list
 				// enemies.erase(enemies.begin() + j); // erases the enemy from the enemy vector
